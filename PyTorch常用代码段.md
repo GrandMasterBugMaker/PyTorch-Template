@@ -532,3 +532,6 @@ with torchsnooper.snoop():
     原本的代码
 ```
   19. 模型可解释性，使用captum库
+  20.一些扩展包：
+  - 'torch-optimizer':实现了最新的一些优化器.
+  
