@@ -532,6 +532,13 @@ with torchsnooper.snoop():
     原本的代码
 ```
   19. 模型可解释性，使用captum库
-  20.一些扩展包：
-  - 'torch-optimizer':实现了最新的一些优化器.
+  20.训练过程记录及可视化:
+  - `wandb`
+  - `comet_ml`
+  - `mlflow`
+  21.一些扩展包：
+  - `torch-optimizer`:实现了最新的一些优化器.
+  - `fastai`:有一些评价指标。
+  - `numba`:使用@njit加速部分函数
+  -`swifter`:加速pandas
   
