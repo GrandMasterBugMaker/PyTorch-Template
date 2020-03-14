@@ -539,8 +539,8 @@ with torchsnooper.snoop():
   - `torch-optimizer`:实现了最新的一些优化器.
   - `fastai`:有一些评价指标
   - `numba`:使用@njit加速部分函数
-  -`swifter`:加速pandas
-  -`captum`:可解释性
-  -`cupy`:加速pandas,1000万以上数据更快
-  -`modin`:加速pandas,加载数据和查询数据更快,统计方法pandas更快
+  - `swifter`:加速pandas
+  - `captum`:可解释性
+  - `cupy`:加速pandas,1000万以上数据更快
+  - `modin`:加速pandas,加载数据和查询数据更快,统计方法pandas更快
   
