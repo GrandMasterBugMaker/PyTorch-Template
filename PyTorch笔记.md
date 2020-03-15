@@ -54,6 +54,16 @@ torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.deterministic = True
 ```
 # 2.张量(Tensor)处理
+## 创建张量
+```python
+#data只能是已知的数据，不能是数据的维度
+torch.tensor(data)
+#可以是data，也可以是维度
+#data:
+torch.Tensor(data)
+#维度,维度为(1,2,3)
+torch.Tensor(1,2,3)
+```
 ## 张量基本信息
 ```Python
 tensor = torch.randn(3,4,5)
