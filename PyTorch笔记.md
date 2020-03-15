@@ -486,6 +486,9 @@ for epoch in range(start_epoch, num_epochs):
         shutil.copy(model_path, best_model_path)
 ```
 # 5.其他注意事项
+## 数据读取
+  使用`read_csv`读取一次原始文件，将`dataframe`存储为`HDF`或者`feather`格式。一般情况下`HDF`的读取比读取`csv`文件快几十倍，但`HDF`文件在大小上会稍微大一些。
+## Tricks
   1. 建议有参数的层和汇合（pooling）层使用`torch.nn`模块定义，激活函数直接使用`torch.nn.functional。torch.nn`模块和`torch.nn.functional`的区别在于，`torch.nn`模块在计算时底层调用了`torch.nn.functional`，但`torch.nn`模块包括该层参数，还可以应对训练和测试两种网络状态。使用`torch.nn.functional`时要注意网络状态，如
   ```python
   def forward(self, x):
