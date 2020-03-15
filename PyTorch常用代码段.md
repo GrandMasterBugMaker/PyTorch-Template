@@ -539,7 +539,7 @@ with torchsnooper.snoop():
   - `torch-optimizer`:实现了最新的一些优化器.
   - `fastai`:有一些评价指标
   - `numba`:`import numba as nb`,加@nb.njit或@nb.jit(nopython=True)
-  - `swifter`:加速pandas
+  - `swifter`:`df.apply()`→·`df.swifter.apply()`，加速pandas
   - `captum`:可解释性
   - `cupy`:加速pandas,1000万以上数据更快
   - `modin`:`import modin.pandas as mdpd`,用`mdpd`代替`pd`即可，加速pandas,加载数据和查询数据更快,统计方法pandas更快
