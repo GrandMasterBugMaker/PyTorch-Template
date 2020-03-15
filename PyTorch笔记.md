@@ -71,6 +71,51 @@ print(tensor.type())  # 数据类型
 print(tensor.size())  # 张量的shape，是个元组
 print(tensor.dim())   # 维度的数量
 ```
+## 切片与索引
+将图片设定为[batch_size, channel, height, width]的四维矩阵。
+```python
+a = torch.rand(4, 3, 28, 28)
+```
+对第一维进行索引,可以认为是第一个图片的三个维度通道的28*28的像素点。:
+```python
+print(a[0].size())
+torch.Size([3, 28, 28])
+```
+第一个图片的第一个维度通道的28*28的像素点:
+```python
+print(a[0, 0].size())
+torch.Size([28, 28])
+```
+具体到某一个像素点时:
+```python
+print(a[0, 0, 2, 3])
+tensor(0.4736)
+```
+取连续的索引:
+```python
+print(a[:2].shape)
+torch.Size([2, 3, 28, 28])
+```
+同理：
+```python
+# 1写在：前面，表明从1个通道开始到末尾，,不包括1
+print(a[:2, 1:, :, :].shape)
+```
+当索引出现-1时，要提到一个知识点:
+```python
+# 默认索引的顺序为[0, 1, 2]，当倒着写时变为[-3, -2, -1]。由于这里取-1，因此为最后一位。
+print(a[:2, -1:, :, :].shape)
+torch.Size([2, 1, 28, 28])
+```
+当想隔点取样输出时:
+```python
+#输出全部batch和channel，对每个高和宽间隔2个点采样
+print(a[:, :, 0:28:2, 0:28:2].shape)
+torch.Size([4, 3, 14, 14])
+#可简化为：
+print(a[:, :, ::2, ::2].shape)
+```
+
 ## 命名变量
 ```Python
 # 在PyTorch 1.3之前，需要使用注释
