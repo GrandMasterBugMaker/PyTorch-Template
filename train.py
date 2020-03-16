@@ -143,7 +143,7 @@ if __name__ == "__main__":
                 # 	print(batch_idx + 1, len(dataloader), 'Loss: %.3f' % (train_loss / num))
                 # 	train_loss = 0
             now = time.time()
-            train_loss = np.mean(train_losses)
+            train_loss = np.mean(np.array(train_losses))
             print(epoch, "loss:%.3f,time:%.2fs" % (train_loss, now - past))
             writer.add_scalar("train_loss", train_loss, epoch)
             wandb.log({"train_loss": train_loss}, step=epoch)
@@ -165,7 +165,7 @@ if __name__ == "__main__":
                     outputs = model(inputs)
                     loss = criterion(outputs, targets)
                     val_losses.append(loss.item())
-            val_loss = np.mean(val_losses)
+            val_loss = np.mean(np.array(val_losses))
             wandb.log({"val_loss": val_loss}, step=epoch)
 
             #####some testing#####
