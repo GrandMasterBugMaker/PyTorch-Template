@@ -124,7 +124,7 @@ if __name__ == "__main__":
             train_losses = []
             model.train()
             past = time.time()
-            for batch_idx, (inputs, targets) in enumerate(train_data_loader):
+            for inputs, targets in train_data_loader:
 
                 # models.zero_grad()
                 # optimizer.zero_grad()#当optimizer=optim.Optimizer(models.parameters())时，两者等效
@@ -159,7 +159,7 @@ if __name__ == "__main__":
             model.eval()
             val_losses = []
             with torch.no_grad():
-                for batch_idx, (inputs, targets) in enumerate(validation_data_loader):
+                for inputs, targets in validation_data_loader:
                     inputs, targets = inputs.to(device), targets.to(device)
 
                     outputs = model(inputs)
