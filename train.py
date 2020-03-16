@@ -104,7 +104,9 @@ if __name__ == "__main__":
     start_epoch = 0
     if opt.resume:
         ckpt = torch.load(
-            opt.path_to_checkpoint + "models.pt"
+            opt.path_to_checkpoint
+            + "%d_%d_%d_%d_%d_model.onnx"
+            % (opt.value_dim, opt.moment_dim, opt.hidden_size, opt.label_dim, opt.LSTM_num_layers)
         )  # custom method for loading last checkpoint
         model.load_state_dict(ckpt["model_state_dict"])
         start_epoch = ckpt["epoch"]
@@ -124,7 +126,7 @@ if __name__ == "__main__":
             train_losses = []
             model.train()
             past = time.time()
-            for inputs, targets in train_data_loader:
+            for batch_idx, (inputs, targets) in enumerate(train_data_loader):
 
                 # models.zero_grad()
                 # optimizer.zero_grad()#当optimizer=optim.Optimizer(models.parameters())时，两者等效
@@ -159,7 +161,7 @@ if __name__ == "__main__":
             model.eval()
             val_losses = []
             with torch.no_grad():
-                for inputs, targets in validation_data_loader:
+                for batch_idx, (inputs, targets) in enumerate(validation_data_loader):
                     inputs, targets = inputs.to(device), targets.to(device)
 
                     outputs = model(inputs)
@@ -179,7 +181,9 @@ if __name__ == "__main__":
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                 },
-                file
+                opt.path_to_checkpoint
+                + "%d_%d_%d_%d_%d_model.onnx"
+                % (opt.value_dim, opt.moment_dim, opt.hidden_size, opt.label_dim, opt.LSTM_num_layers)
             )
             wandb.save("mymodel.h5")
             early_stopping(val_loss, model, opt)
