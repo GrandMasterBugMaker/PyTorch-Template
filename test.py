@@ -91,7 +91,7 @@ if __name__ == "__main__":
         test_losses = []
         model.eval()
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(test_data_loader):
+            for inputs, targets in test_data_loader:
                 inputs, targets = inputs.to(device), targets.to(device)
 
                 outputs = model(inputs)
