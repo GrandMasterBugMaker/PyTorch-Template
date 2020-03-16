@@ -97,6 +97,6 @@ if __name__ == "__main__":
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
                 test_losses.append(loss.item())
-        val_loss = np.mean(test_losses)
+        val_loss = np.mean(np.mean(test_losses))
 
     test()
