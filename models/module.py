@@ -16,6 +16,7 @@ tricks:
 6.cupy:加速pandas,1000万以上数据更快
 7.modin:import modin.pandas as mdpd,用mdpd代替pd即可，加速pandas,加载数据和查询数据更快,统计方法pandas更快
 """
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -27,3 +28,16 @@ class Model(nn.Module):
 
     def forward(self, x):
         pass
+
+    def initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                torch.nn.init.xavier_normal_(m.weight.data)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                torch.nn.init.normal_(m.weight.data, 0, 0.01)
+                m.bias.data.zero_()
