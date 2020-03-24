@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # 自定义的model
     model = MyModel(opt)
     model.to(device)
-    model.apply(weight_init)
+    model.initialize_weights()
 
     # 并行运算，如果需要的话
     model = nn.DataParallel(model, device_ids=device_ids).to(device)
