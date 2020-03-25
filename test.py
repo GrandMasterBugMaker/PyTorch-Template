@@ -13,7 +13,8 @@ import torch.optim as optim
 from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
-from networks import MyModel, weight_init
+from models.module import Model
+from utils.util import set_device
 
 """
 tricks:
@@ -25,21 +26,37 @@ tricks:
 6.cupy:加速pandas,1000万以上数据更快
 7.modin:import modin.pandas as mdpd,用mdpd代替pd即可，加速pandas,加载数据和查询数据更快,统计方法pandas更快
 """
-# #取每个 GPU 的剩余显存数，并存放到 tmp 文件中
-# os.system("nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp")
-# memory_gpu = [int(x.split()[2]) for x in open("tmp", "r").readlines()]
-# torch.cuda.set_device(np.argmax(memory_gpu))
-# os.system("rm tmp")  # 删除临时生成的 tmp 文件
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-##命令行执行
-# CUDA_VISIBLE_DEVICES=0,1 python train.py
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
-torch.backends.cudnn.benchmark = True
-torch.backends.cudnn.deterministic = True
+
+def test():
+    last = time.time()
+    torch.cuda.empty_cache()
+    test_losses = []
+    model.eval()
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(test_data_loader):
+            inputs, targets = inputs.to(device), targets.to(device)
+
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            test_losses.append(loss.item())
+    val_loss = np.mean(np.mean(test_losses))
+
 
 if __name__ == "__main__":
+    # #取每个 GPU 的剩余显存数，并存放到 tmp 文件中
+    # os.system("nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp")
+    # memory_gpu = [int(x.split()[2]) for x in open("tmp", "r").readlines()]
+    # torch.cuda.set_device(np.argmax(memory_gpu))
+    # os.system("rm tmp")  # 删除临时生成的 tmp 文件
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+    ##命令行执行
+    # CUDA_VISIBLE_DEVICES=0,1 python train.py
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.deterministic = True
     # argparse for additional flags for experiment
     parser = argparse.ArgumentParser(description="Train a network for ...")
     parser.add_argument("--seed", type=int, default=0)
@@ -59,14 +76,11 @@ if __name__ == "__main__":
     test_data_loader = data.DataLoader(
         test_dataset, batch_size=xxxx, shuffle=True, drop_last=True
     )
-    validation_data_loader = data.DataLoader(
-        validation_dataset, batch_size=xxxx, shuffle=True
-    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # device_ids = [0, 1]
 
-    model = MyModel(opt)
+    model = Model(opt)
     ckpt = torch.load(
         opt.path_to_checkpoint + "lowest_val_loss_model.pt"
     )  # custom method for loading last checkpoint
@@ -84,19 +98,5 @@ if __name__ == "__main__":
     wandb.watch(model, criterion)
 
     writer = SummaryWriter("runs/models")
-
-    def test():
-        last = time.time()
-        torch.cuda.empty_cache()
-        test_losses = []
-        model.eval()
-        with torch.no_grad():
-            for inputs, targets in test_data_loader:
-                inputs, targets = inputs.to(device), targets.to(device)
-
-                outputs = model(inputs)
-                loss = criterion(outputs, targets)
-                test_losses.append(loss.item())
-        val_loss = np.mean(np.mean(test_losses))
 
     test()
