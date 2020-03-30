@@ -10,7 +10,7 @@
   print(torch.cuda.get_device_name(0))#GPU type
   ```
 ## 可复现性
-在硬件设备（CPU、GPU）不同时，完全的可复现性无法保证，即使随机种子相同。但是，在同一个设备上，应该保证可复现性。具体做法是，在程序开始的时候固定torch的随机种子，同时也把numpy的随机种子固定。
+在硬件设备（CPU、GPU）不同时，完全的可复现性无法保证，即使随机种子相同。但是，在同一个设备上，应该保证可复现性。具体做法是，在程序开始的时候固定`torch`的随机种子，同时也把`numpy`的随机种子固定。
 ```Python
 np.random.seed(0)
 torch.manual_seed(0)
@@ -64,11 +64,35 @@ torch.Tensor(data)
 #维度,维度为(1,2,3)
 torch.Tensor(1,2,3)
 ```
+在用户手动定义`Tensor`时，参数`requires_grad`默认值是`False`。而在`Module`中的层在定义时，相关`Tensor`的`requires_grad`参数默认是`True`。
+## 张量转换
+你可以通过访问`dtype`属性来获得张量的数据类型：
+```python
+short_points.dtype
+torch.int16
+```
+您还可以使用相应的转换方法将张量创建函数的输出转换为正确的类型，例如
+```python
+double_points = torch.zeros(10, 2).double()
+short_points = torch.ones(10, 2).short()
+```
+或者用更方便的`to`方法：
+```python
+double_points = torch.zeros(10, 2).to(torch.double)
+short_points = torch.ones(10, 2).to(dtype=torch.short)
+```
+在实现内部，`type`和`to`执行相同的操作，即“检查类型如果需要就转换（`check-and-convert-if-needed`）”，但是`to`方法可以使用其他参数。
+你始终可以使用`type`方法将一种类型的张量转换为另一种类型的张量：
+```python
+points = torch.randn(10, 2)
+short_points = points.type(torch.short)
+```
 ## 张量基本信息
 ```Python
 tensor = torch.randn(3,4,5)
 print(tensor.type())  # 数据类型
-print(tensor.size())  # 张量的shape，是个元组
+print(tensor.size())  # 张量的shape，是个元组，size()是size类实例
+print(tensor.shape)  # 张量的shape,是属性
 print(tensor.dim())   # 维度的数量
 ```
 ## 切片与索引
@@ -115,7 +139,11 @@ torch.Size([4, 3, 14, 14])
 #可简化为：
 print(a[:, :, ::2, ::2].shape)
 ```
-
+```python
+points[1:]    # 第1行及之后所有行，（默认）所有列
+points[1:, :] # 第1行及之后所有行，所有列
+points[1:, 0] # 第1行及之后所有行，仅第0列
+```
 ## 命名变量
 ```Python
 # 在PyTorch 1.3之前，需要使用注释
@@ -140,13 +168,71 @@ tensor = tensor.align_to('N', 'C', 'H', 'W')
 torch.set_default_tensor_type(torch.FloatTensor)
 
 # 类型转换
-tensor = tensor.cuda()
 tensor = tensor.cpu()
 tensor = tensor.float()
 tensor = tensor.long()
 ```
-## torch.Tensor与np.ndarray转换
-除了CharTensor，其他所有CPU上的张量都支持转换为numpy格式然后再转换回来。
+除了`dtype`之外，`PyTorch`张量还具有设备（`device`）的概念，这是在设置计算机上放张量（`tensor`）数据的位置。 通过为构造函数指定相应的参数，可以在`GPU`上创建张量：
+```python
+points_gpu = torch.tensor([[1.0, 4.0], [2.0, 1.0], [3.0, 4.0]], device='cuda')
+```
+你可以使用`to`方法将在`CPU`上创建的张量（`tensor`）复制到`GPU`：
+```python
+points_gpu = points.to(device='cuda')
+```
+这段代码返回一个具有相同数值数据的新张量，但存储在`GPU`的`RAM`中，而不是常规的系统`RAM`中。
+现在数据已经存放在本地的`GPU`中，当在张量上运行数字运算时，你可以看见很好的加速效果。并且，这个新`GPU`支持的张量的类也更改为`torch.cuda`.`FloatTensor`（一开始输入的类型为`torch.FloatTensor`；`torch.cuda.DoubleTensor`等等也存在对应关系）。在大部分样例中，基于`CPU`和`GPU`的张量都公开面向用户相同的`API`，这使得与繁琐数字运算过程中无关的代码的编写更加容易。
+如果你的机器拥有多个`GPU`，你可以通过传递从零开始的整数来确定张量分配给哪个GPU，该整数标志着机器上的`GPU`下标：
+```python
+points_gpu = points.to(device='cuda:0')
+```
+此时，在`GPU`上执行对张量的任何操作，例如将所有元素乘以一个常数。
+```python
+points = 2 * points # 在CPU上做乘法
+points_gpu = 2 * points.to(device='cuda') # 在GPU上做乘法
+```
+请注意，当计算结果产生后，`points_gpu`的张量并不会返回到`CPU`。这里发生的是以下三个过程：
+1. 将`points`张量复制到`GPU`
+2. 在`GPU`上分配了一个新的张量，并用于存储乘法的结果
+3. 返回该`GPU`张量的句柄
+因此，如果你还想向结果加上一个常量：
+```python
+points_gpu = points_gpu + 4
+```
+加法仍然在`GPU`上执行，并且没有信息流到`CPU`（除非您打印或访问得到的张量）。 如果要将张量移回`CPU`，你需要为`to`方法提供一个`cpu`参数：
+```python
+points_cpu = points_gpu.to(device='cpu')
+```
+你可以使用速记方法`cpu`和`cuda`代替`to`方法来实现相同的目标
+```python
+points_gpu = points.cuda() # 默认为GPU0
+points_gpu = points.cuda(0)
+points_cpu = points_gpu.cpu()
+```
+值得一提的是，使用to方法时，可以通过提供`device`和`dtype`参数来同时更改位置和数据类型。
+## 张量操作
+在`torch`模块下可进行张量上和张量之间的绝大多数操作，这些操作也可以作为张量对象的方法进行调用。例如，你可以通过`torch`模块使用先前遇到的`transpose`函数：
+```python
+a = torch.ones(3, 2)
+a_t = torch.transpose(a, 0, 1)
+```
+或者调用`a`张量的方法：
+```python
+a = torch.ones(3, 2)
+a_t = a.transpose(0, 1)
+```
+以上两种形式之间没有区别，可以互换使用。需要注意的是：有少量的操作仅作为张量对象的方法存在。你可以通过名称中的下划线来识别它们，例如`zero_`，下划线标识表明该方法是就地（`inplace`）运行的，即直接修改输入而不是创建新的输出并返回。例如，`zero_`方法会将输入的所有元素清零。任何不带下划线的方法都将保持源张量不变并返回新的张量：
+```python
+a = torch.ones(3, 2)
+a.zero_()
+a
+tensor([[0., 0.],
+        [0., 0.],
+        [0., 0.]])
+```
+`torch.tensor()`或者`tensor.clone()`总是会进行数据拷贝，新`tensor`和原来的数据不再共享内存。所以如果你想共享内存的话，建议使用`torch.from_numpy()`或者`tensor.detach()`来新建一个`tensor`, 二者共享内存。
+## `torch.Tensor`与`np.ndarray`转换
+除了`CharTensor`，其他所有`CPU`上的张量都支持转换为`numpy`格式然后再转换回来。
 ```Python
 ndarray = tensor.cpu().numpy()
 tensor = torch.from_numpy(ndarray).float()
@@ -222,6 +308,68 @@ result = tensor1 * tensor2
 ```python
 dist = torch.sqrt(torch.sum((X1[:,None,:] - X2) ** 2, dim=2))
 ```
+## 连续张量
+```
+points = torch.tensor([[1.0, 4.0], [2.0, 1.0], [3.0, 5.0]])
+points
+tensor([[1., 4.],
+        [2., 1.],
+        [3., 5.]])
+points_t = points.t()
+points_t
+tensor([[1., 2., 3.],
+        [4., 1., 5.]])
+```
+你可以轻松地验证两个张量共享同一存储：
+```python
+id(points.storage()) == id(points_t.storage())
+True
+```
+并且它们的仅仅是尺寸和步长不同：
+```python
+points.stride()
+(2, 1)
+points_t.stride()
+(1, 2)
+```
+从最右边的维开始将其值存放在存储中的张量（例如沿着行存放在存储中的二维张量）定义为连续（`Contiguous`）张量。连续张量很方便，因为你可以高效且有序地访问它们的元素而不是在存储中四处跳跃访问。（由于现代`CPU`中内存访问的工作原理，改善数据局部性可提高性能。译者注：即连续张量满足局部性原理）
+在前例中，`points`是连续的，但其转置不是：
+```python
+points.is_contiguous(), points_t.is_contiguous()
+(True, False)
+```
+你可以使用`contiguous`方法从非连续张量获得新的连续张量。 张量的内容保持不变，但步长发生变化，存储也是如此：
+```python
+points = torch.tensor([[1.0, 4.0], [2.0, 1.0], [3.0, 5.0]])
+points_t = points.t()
+points_t
+tensor([[1., 2., 3.],
+        [4., 1., 5.]])
+points_t.storage()
+ 1.0
+ 4.0
+ 2.0
+ 1.0
+ 3.0
+ 5.0
+[torch.FloatStorage of size 6]
+points_t.stride()(1, 2)
+points_t_cont = points_t.contiguous()
+points_t_cont
+tensor([[1., 2., 3.],
+        [4., 1., 5.]])
+points_t_cont.stride()
+(3, 1)
+points_t_cont.storage()
+ 1.0
+ 2.0
+ 3.0
+ 4.0
+ 1.0
+ 5.0
+[torch.FloatStorage of size 6]
+```
+请注意，新的存储对元素进行了重组以便逐行存放张量元素。步长也已改变以反映新的布局。
 # 3.模型定义和操作
 ## 计算模型整体参数量
 ```python
