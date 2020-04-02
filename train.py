@@ -6,6 +6,8 @@ import random
 import wandb
 from tqdm import tqdm
 import numpy as np
+import numba as nb
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
