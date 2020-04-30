@@ -15,7 +15,8 @@ from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 from models.module import Model
-from utils.util import EarlyStopping, set_device
+from utils.util import EarlyStopping
+from data.custom_dataset import MyDataset
 
 """
 tricks:
@@ -137,11 +138,11 @@ if __name__ == "__main__":
     wandb.init(project="my-project")
     wandb.config.xxx = opt.xxx
     # 准备数据
-    train_dataset = xxxxxx  # 定义的数据集
-    validation_dataset = xxx
+    train_dataset = MyDataset('train_dataset_path')  # 定义的数据集
+    validation_dataset = MyDataset('validation_dataset_path')
     train_data_loader = data.DataLoader(
         train_dataset,
-        batch_size=xxxx,
+        batch_size=128,
         shuffle=True,
         num_workers=4,
         pin_memory=True,

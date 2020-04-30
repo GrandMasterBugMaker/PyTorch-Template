@@ -16,7 +16,7 @@ from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 from models.module import Model
-from utils.util import set_device
+from data.custom_dataset import MyDataset
 
 """
 tricks:
@@ -74,9 +74,9 @@ if __name__ == "__main__":
     wandb.init(project="my-project")
     wandb.config.xxx = opt.xxx
     # 准备数据
-    test_dataset = xxxxxx  # 定义的数据集
+    test_dataset = MyDataset('test_dataset_path')  # 定义的数据集
     test_data_loader = data.DataLoader(
-        test_dataset, batch_size=xxxx, shuffle=True, drop_last=True
+        test_dataset, batch_size=128, shuffle=True, drop_last=True
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
