@@ -1,3 +1,11 @@
+"""
+tricks:
+1.torch-optimizer:实现了最新的一些优化器.
+2.numba:import numba as nb,纯python或numpy加速,加@nb.njit或@nb.jit(nopython=True)
+3.swifter:df.apply()→·df.swifter.apply()，加速pandas
+4.cupy:1000万以上数据更快
+5.modin:import modin.pandas as mdpd,用mdpd代替pd即可，加速pandas,加载数据和查询数据更快,统计方法pandas更快
+"""
 import os
 import sys
 import argparse
@@ -17,17 +25,6 @@ from torchsummary import summary
 from models.module import Model
 from utils.util import EarlyStopping
 from data.custom_dataset import MyDataset
-
-"""
-tricks:
-1.torch-optimizer:实现了最新的一些优化器.
-2.fastai:有一些评价指标
-3.numba:import numba as nb,纯python或numpy加速,加@nb.njit或@nb.jit(nopython=True)
-4.swifter:df.apply()→·df.swifter.apply()，加速pandas
-5.captum:可解释性
-6.cupy:加速pandas,1000万以上数据更快
-7.modin:import modin.pandas as mdpd,用mdpd代替pd即可，加速pandas,加载数据和查询数据更快,统计方法pandas更快
-"""
 
 
 def train(start_epoch, num_epochs):
@@ -138,8 +135,8 @@ if __name__ == "__main__":
     wandb.init(project="my-project")
     wandb.config.xxx = opt.xxx
     # 准备数据
-    train_dataset = MyDataset('train_dataset_path')  # 定义的数据集
-    validation_dataset = MyDataset('validation_dataset_path')
+    train_dataset = MyDataset("train_dataset_path")  # 定义的数据集
+    validation_dataset = MyDataset("validation_dataset_path")
     train_data_loader = data.DataLoader(
         train_dataset,
         batch_size=128,
