@@ -428,6 +428,83 @@ for layer in model.named_modules():
 ```python
 model.load_state_dict(torch.load('model.pth'), strict=False)
 ```
+## `nn.ModuleList`和`nn.Sequential`
+```python
+self.linears = nn.ModuleList([nn.Linear(10,10) for i in range(2)])
+```
+你可以把任意 `nn.Module` 的子类 (比如 `nn.Conv2d`, `nn.Linear` 之类的) 加到这个 `list` 里面，方法和 `Python` 自带的 `list` 一样，无非是 `extend`，`append` 等操作。但不同于一般的 `list`，加入到 `nn.ModuleList` 里面的 `module` 是会自动注册到整个网络上的，同时 `module` 的 `parameters` 也会自动添加到整个网络中。
+
+`nn.ModuleList` 并没有定义一个网络，它只是将不同的模块储存在一起，这些模块之间并没有什么先后顺序可言。
+
+```python
+self.block = nn.Sequential(nn.Conv2d(1,20,5),
+                                    nn.ReLU(),
+                                    nn.Conv2d(20,64,5),
+                                    nn.ReLU())
+```
+`nn.Sequential`，不同于 `nn.ModuleList`，它已经实现了内部的 `forward` 函数，而且里面的模块必须是按照顺序进行排列的，所以我们必须确保前一个模块的输出大小和下一个模块的输入大小是一致的。
+```python
+model2 = nn.Sequential(collections.OrderedDict([
+          ('conv1', nn.Conv2d(1,20,5)),
+          ('relu1', nn.ReLU()),
+          ('conv2', nn.Conv2d(20,64,5)),
+          ('relu2', nn.ReLU())
+        ]))
+```
+一般情况下 `nn.Sequential` 的用法是来组成卷积块 (`block`)，然后像拼积木一样把不同的 `block` 拼成整个网络，让代码更简洁，更加结构化。                  
+### 场景１
+有的时候网络中有很多相似或者重复的层，我们一般会考虑用 ｀for｀ 循环来创建它们，而不是一行一行地写，比如：
+```python
+layers = [nn.Linear(10, 10) for i in range(5)]
+```
+这个时候，很自然而然地，我们会想到使用 `ModuleList`，像这样：
+```python
+class net(nn.Module):
+    def __init__(self):
+        super(net, self).__init__()
+        self.linears = nn.ModuleList([nn.Linear(10, 10) for i in range(3)])
+
+    def forward(self, x):
+        for layer in self.linears:
+            x = layer(x)
+        return x
+```        
+这个是比较一般的方法，但如果不想这么麻烦，我们也可以用 `Sequential` 来实现，如下所示！注意 `*` 这个操作符，它可以把一个 `list` 拆开成一个个独立的元素。但是，请注意这个 `list` 里面的模块必须是按照想要的顺序来进行排列的。
+```python
+class net(nn.Module):
+    def __init__(self):
+        super(net, self).__init__()
+        self.linear_list = [nn.Linear(10, 10) for i in range(3)]
+        self.linears = nn.Sequential(*self.linears_list)
+
+    def forward(self, x):
+        self.x = self.linears(x)
+        return x
+```
+### 场景二
+当我们需要之前层的信息的时候，比如 `ResNets` 中的 `shortcut` 结构，或者是像 `FCN` 中用到的 `skip architecture` 之类的，当前层的结果需要和之前层中的结果进行融合，一般使用 `ModuleList` 比较方便，一个非常简单的例子如下：
+```python
+class net(nn.Module):
+    def __init__(self):
+        super(net, self).__init__()
+        self.linears = nn.ModuleList([nn.Linear(10, 20), nn.Linear(20, 30), nn.Linear(30, 50)])
+        self.trace = []
+
+    def forward(self, x):
+        for layer in self.linears:
+            x = layer(x)
+            self.trace.append(x)
+        return x
+net = net()
+input  = torch.randn(32, 10) # input batch size: 32
+output = net(input)
+for each in net.trace:
+    print(each.shape)
+# torch.Size([32, 20])
+# torch.Size([32, 30])
+# torch.Size([32, 50])
+```
+我们使用了一个 `trace` 的列表来储存网络每层的输出结果，这样如果以后的层要用的话，就可以很方便地调用了。
 # 4.模型训练和测试
 ## `model.eval()`和`with torch.no_grad()`的区别
 在PyTorch中进行validation时，会使用`model.eval()`切换到测试模式，在该模式下，
