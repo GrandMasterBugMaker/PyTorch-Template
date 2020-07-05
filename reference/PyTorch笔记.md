@@ -39,7 +39,7 @@ torch.cuda.empty_cache()
 ```
 nvidia-smi --gpu-reset -i [gpu_id]
 ```
-或在命令行可以先使用ps找到程序的PID，再使用kill结束该进程
+或在命令行可以先使用ps找到程序的PID，再使用`kill`结束该进程
 ```python
 ps aux | grep python
 kill -9 [pid]
@@ -96,7 +96,7 @@ print(tensor.shape)  # 张量的shape,是属性
 print(tensor.dim())   # 维度的数量
 ```
 ## 切片与索引
-将图片设定为[batch_size, channel, height, width]的四维矩阵。
+将图片设定为`[batch_size, channel, height, width]`的四维矩阵。
 ```python
 a = torch.rand(4, 3, 28, 28)
 ```
@@ -376,7 +376,7 @@ points_t_cont.storage()
 num_parameters = sum(torch.numel(parameter) for parameter in model.parameters())
 ```
 ## 查看网络中的参数
-可以通过model.state_dict()或者model.named_parameters()函数查看现在的全部可训练参数（包括通过继承得到的父类中的参数）
+可以通过`model.state_dict()`或者`model.named_parameters()`函数查看现在的全部可训练参数（包括通过继承得到的父类中的参数）
 ```python
 params = list(model.named_parameters())
 (name, param) = params[28]
@@ -393,7 +393,7 @@ print(param1.grad)
 ```
 ## 类似 Keras 的 model.summary() 输出模型信息（使用pytorch-summary ）
 ## 模型权重初始化
-注意 model.modules() 和 model.children() 的区别：model.modules() 会迭代地遍历模型的所有子层，而 model.children() 只会遍历模型下的一层。
+注意 `model.modules()` 和 `model.children()` 的区别：`model.modules()` 会迭代地遍历模型的所有子层，而 `model.children()` 只会遍历模型下的一层。
 ```python
 # Common practise for initialization.
 for layer in model.modules():
@@ -414,7 +414,7 @@ for layer in model.modules():
 layer.weight = torch.nn.Parameter(tensor)
 ```
 ## 提取模型中的某一层
-modules()会返回模型中所有模块的迭代器，它能够访问到最内层，比如self.layer1.conv1这个模块，还有一个与它们相对应的是name_children()属性以及named_modules(),这两个不仅会返回模块的迭代器，还会返回网络层的名字。
+`modules()`会返回模型中所有模块的迭代器，它能够访问到最内层，比如`self.layer1.conv1`这个模块，还有一个与它们相对应的是`name_children()`属性以及`named_modules()`,这两个不仅会返回模块的迭代器，还会返回网络层的名字。
 ```python
 # 取模型中的前两层
 new_model = nn.Sequential(*list(model.children())[:2] 
@@ -424,7 +424,7 @@ for layer in model.named_modules():
          conv_model.add_module(layer[0],layer[1])
 ```
 ## 部分层使用预训练模型
-注意如果保存的模型是 torch.nn.DataParallel，则当前的模型也需要是
+注意如果保存的模型是`torch.nn.DataParallel`，则当前的模型也需要是
 ```python
 model.load_state_dict(torch.load('model.pth'), strict=False)
 ```
@@ -453,7 +453,7 @@ model2 = nn.Sequential(collections.OrderedDict([
 ```
 一般情况下 `nn.Sequential` 的用法是来组成卷积块 (`block`)，然后像拼积木一样把不同的 `block` 拼成整个网络，让代码更简洁，更加结构化。                  
 ### 场景１
-有的时候网络中有很多相似或者重复的层，我们一般会考虑用 ｀for｀ 循环来创建它们，而不是一行一行地写，比如：
+有的时候网络中有很多相似或者重复的层，我们一般会考虑用 `for` 循环来创建它们，而不是一行一行地写，比如：
 ```python
 layers = [nn.Linear(10, 10) for i in range(5)]
 ```
@@ -507,16 +507,16 @@ for each in net.trace:
 我们使用了一个 `trace` 的列表来储存网络每层的输出结果，这样如果以后的层要用的话，就可以很方便地调用了。
 # 4.模型训练和测试
 ## `model.eval()`和`with torch.no_grad()`的区别
-在PyTorch中进行validation时，会使用`model.eval()`切换到测试模式，在该模式下，
-- 主要用于通知dropout层和batchnorm层在train和val模式间切换
-    在train模式下，dropout网络层会按照设定的参数p设置保留激活单元的概率（保留概率=p); batchnorm层会继续计算数据的mean和var等参数并更新。
-在val模式下，dropout层会让所有的激活单元都通过，而batchnorm层会停止计算和更新mean和var，直接使用在训练阶段已经学出的mean和var值。
-- 该模式不会影响各层的gradient计算行为，即gradient计算和存储与training模式一样，只是不进行反传（backprobagation）
-而`with torch.zero_grad()`则主要是用于停止autograd模块的工作，以起到加速和节省显存的作用，具体行为就是停止gradient计算，从而节省了GPU算力和显存，但是并不会影响dropout和batchnorm层的行为。
+在`PyTorch`中进行`validation`时，会使用`model.eval()`切换到测试模式，在该模式下，
+- 主要用于通知`dropout`层和`batchnorm`层在`train`和`val`模式间切换
+    在`train`模式下，`dropout`网络层会按照设定的参数`p`设置保留激活单元的概率（保留概率=`p`); `batchnorm`层会继续计算数据的`mean`和`var`等参数并更新。
+在`val`模式下，`dropout`层会让所有的激活单元都通过，而`batchnorm`层会停止计算和更新`mean`和`var`，直接使用在训练阶段已经学出的`mean`和`var`值。
+- 该模式不会影响各层的`gradient`计算行为，即`gradient`计算和存储与`training`模式一样，只是不进行反传(`backprobagation`)
+而`with torch.zero_grad()`则主要是用于停止autograd模块的工作，以起到加速和节省显存的作用，具体行为就是停止`gradient`计算，从而节省了GPU算力和显存，但是并不会影响`dropout`和`batchnorm`层的行为。
 ### 使用场景
-如果不在意显存大小和计算时间的话，仅仅使用`model.eval()`已足够得到正确的validation的结果；而`with torch.zero_grad()`则是更进一步加速和节省gpu空间（因为不用计算和存储gradient），从而可以更快计算，也可以跑更大的batch来测试。
+如果不在意显存大小和计算时间的话，仅仅使用`model.eval()`已足够得到正确的`validation`的结果；而`with torch.zero_grad()`则是更进一步加速和节省gpu空间（因为不用计算和存储`gradient`），从而可以更快计算，也可以跑更大的`batch`来测试。
 ## 自定义loss
-继承torch.nn.Module类写自己的loss。
+继承`torch.nn.Module`类写自己的`loss`。
 ```python
 class MyLoss(torch.nn.Moudle):
     def __init__(self):
@@ -527,7 +527,7 @@ class MyLoss(torch.nn.Moudle):
         return loss
 ```
 ## 标签平滑（label smoothing）
-写一个label_smoothing.py的文件，然后在训练代码里引用，用LSR代替交叉熵损失即可。label_smoothing.py内容如下：
+写一个`label_smoothing.py`的文件，然后在训练代码里引用，用LSR代替交叉熵损失即可。`label_smoothing.py`内容如下：
 ```python
 import torch
 import torch.nn as nn
@@ -615,7 +615,7 @@ class LSR(nn.Module):
         else:
             raise ValueError('unrecognized option, expect reduction to be one of none, mean, sum')
 ```
-或者直接在训练文件里做label smoothing
+或者直接在训练文件里做`label smoothing`
 ```python
 for images, labels in train_loader:
     images, labels = images.cuda(), labels.cuda()
@@ -640,7 +640,7 @@ for param in model.parameters():
 loss.backward()
 ```
 ## 不对偏置项进行权重衰减（weight decay）
-pytorch里的weight decay相当于l2正则
+`PyTorch`里的`weight decay`相当于`l2`正则
 ```python
 bias_list = (param for name, param in model.named_parameters() if name[-4:] == 'bias')
 others_list = (param for name, param in model.named_parameters() if name[-4:] != 'bias')
@@ -648,7 +648,7 @@ parameters = [{'parameters': bias_list, 'weight_decay': 0},
               {'parameters': others_list}]
 optimizer = torch.optim.SGD(parameters, lr=1e-2, momentum=0.9, weight_decay=1e-4)
 ```
-## 梯度裁剪（gradient clipping）
+## 梯度裁剪(`gradient clipping`)
 ```python
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=20)
 ```
@@ -662,7 +662,7 @@ all_lr = []
 for param_group in optimizer.param_groups:
     all_lr.append(param_group['lr'])
 ```
-另一种方法，在一个batch训练代码里，当前的lr是
+另一种方法，在一个`batch`训练代码里，当前的`lr`是
 ```python
 optimizer.param_groups[0]['lr']
 ```
@@ -692,7 +692,7 @@ for t in range(0, 10):
     val(...)
 ```
 ## 优化器链式更新
-从1.4版本开始，`torch.optim.lr_scheduler` 支持链式更新（chaining），即用户可以定义两个 schedulers，并交替在训练中使用。
+从1.4版本开始，`torch.optim.lr_scheduler` 支持链式更新(chaining)，即用户可以定义两个 `schedulers`，并交替在训练中使用。
 ```python
 import torch
 from torch.optim import SGD
@@ -708,13 +708,13 @@ for epoch in range(4):
     scheduler2.step()
 ```
 ## 模型训练可视化
-PyTorch可以使用tensorboard来可视化训练过程。
-安装和运行TensorBoard。
+`PyTorch`可以使用1tensorboard`来可视化训练过程。
+安装和运行`TensorBoard`。
 ```python
 pip install tensorboard
 tensorboard --logdir=runs
 ```
-使用SummaryWriter类来收集和可视化相应的数据，放了方便查看，可以使用不同的文件夹，比如'Loss/train'和'Loss/test'。
+使用`SummaryWriter`类来收集和可视化相应的数据，放了方便查看，可以使用不同的文件夹，比如`Loss/train`和`Loss/test`。
 ```python
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
@@ -789,7 +789,7 @@ for epoch in range(start_epoch, num_epochs):
 ```python
 x = torch.nn.functional.relu(x, inplace=True)
 ```
-  13. 减少 CPU 和 GPU 之间的数据传输。例如如果你想知道一个 epoch 中每个 mini-batch 的 loss 和准确率，先将它们累积在 GPU 中等一个 epoch 结束之后一起传输回 CPU 会比每个 mini-batch 都进行一次 GPU 到 CPU 的传输更快。
+  13. 减少 CPU 和 GPU 之间的数据传输。例如如果你想知道一个 epoch 中每个 mini-batch 的 loss 和准确率，先将它们累积在 GPU 中等一个 epoch 结束之后一起传输回 CPU 会比每个 `mini-batch` 都进行一次 GPU 到 CPU 的传输更快。
   14. 使用半精度浮点数 `half()`会有一定的速度提升，具体效率依赖于 GPU 型号。需要小心数值精度过低带来的稳定性问题。
   15. 时常使用 `assert tensor.size() == (N, D, H, W)` 作为调试手段，确保张量维度和你设想中一致。
   16. 除了标记 y 外，尽量少使用一维张量，使用 n*1 的二维张量代替，可以避免一些意想不到的一维张量计算结果。
@@ -802,7 +802,7 @@ print(profile)
 # 或者在命令行运行
 python -m torch.utils.bottleneck main.py
 ```
-  18. 使用TorchSnooper来调试PyTorch代码，程序在执行的时候，就会自动 print 出来每一行的执行结果的 tensor 的形状、数据类型、设备、是否需要梯度的信息。
+  18. 使用`TorchSnooper`来调试`PyTorch`代码，程序在执行的时候，就会自动 `print` 出来每一行的执行结果的 `tensor` 的形状、数据类型、设备、是否需要梯度的信息。
 ```python
 # pip install torchsnooper
 import torchsnooper
